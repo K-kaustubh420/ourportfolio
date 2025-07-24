@@ -353,7 +353,7 @@ export default function Page() {
                     <button onClick={handleCloseWork} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
                         <FaTimes size={24} />
                     </button>
-                  <h2 className="text-4xl font-bold mb-8 text-white">{`// Selected_Projects`}</h2>
+                  <h2 className="text-4xl font-bold mb-8 text-white">{`// _Projects`}</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <ProjectCard title="Theyala Social Platform" description="Full social media app (chat, auth, content) for NovusTales LLC, built from the ground up." />
                     <ProjectCard title="Danfe Tea AI Salesbot" description="Custom AI-powered chatbot to boost sales and engagement for a US-based tea company." />
