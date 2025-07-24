@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, MotionStyle } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import { FaWhatsapp, FaEnvelope, FaBrain, FaServer, FaPalette, FaReact, FaNodeJs, FaFigma, FaTimes } from 'react-icons/fa';
 import { SiNextdotjs, SiTypescript, SiTailwindcss, SiFirebase, SiSupabase, SiMongodb, SiOpenai, SiLangchain, SiBlender, SiThreedotjs, SiExpress } from 'react-icons/si';
@@ -20,7 +20,7 @@ const useLongPress = (callback = () => {}, ms = 300) => {
   const [startLongPress, setStartLongPress] = useState(false);
 
   useEffect(() => {
-    let timerId: any;
+    let timerId: NodeJS.Timeout | undefined = undefined;
     if (startLongPress) {
       timerId = setTimeout(callback, ms);
     } else {
@@ -43,12 +43,12 @@ const useLongPress = (callback = () => {}, ms = 300) => {
 const DecryptingText = ({ children, delay = 2500, className }: { children: string; delay?: number; className?: string }) => {
   const [text, setText] = useState('');
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*&<>()[]#@!?%';
-  const intervalRef = useRef<any>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let iteration = 0;
     const startAnimation = () => {
-      clearInterval(intervalRef.current);
+      if(intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = setInterval(() => {
         setText(
           children
@@ -58,13 +58,15 @@ const DecryptingText = ({ children, delay = 2500, className }: { children: strin
             )
             .join('')
         );
-        if (iteration >= children.length) clearInterval(intervalRef.current);
+        if (iteration >= children.length) {
+            if(intervalRef.current) clearInterval(intervalRef.current);
+        }
         iteration += 1 / 4;
       }, 30);
     };
     const timeout = setTimeout(startAnimation, delay);
     return () => {
-      clearInterval(intervalRef.current);
+      if(intervalRef.current) clearInterval(intervalRef.current);
       clearTimeout(timeout);
     };
   }, [children, delay]);
@@ -98,7 +100,7 @@ const Navbar = ({ onShowWork }: { onShowWork: () => void }) => {
 };
 
 // --- Page Sections ---
-const HeroSection = ({ longPressProps }: { longPressProps: any }) => (
+const HeroSection = ({ longPressProps }: { longPressProps: { onPointerDown: () => void; onPointerUp: () => void; onPointerLeave: () => void; } }) => (
   <section className="min-h-screen flex flex-col justify-center items-start text-left" {...longPressProps}>
     <h1 className="text-4xl md:text-5xl font-light text-slate-300 drop-shadow-lg mb-4">
       <TypeAnimation sequence={['Connecting vision...', 2000, 'Connecting vision... to reality.']} wrapper="span" speed={50} cursor={true} />
@@ -122,11 +124,11 @@ const HeroSection = ({ longPressProps }: { longPressProps: any }) => (
   </section>
 );
 
-const Section = React.forwardRef<HTMLElement, { id: string; title: string; children: React.ReactNode; style: any }>(
+const Section = React.forwardRef<HTMLElement, { id: string; title: string; children: React.ReactNode; style: MotionStyle }>(
     ({ id, title, children, style }, ref) => {
         return (
             <motion.section ref={ref} id={id} className="min-h-screen py-32 space-y-12" style={style}>
-                <h2 className="text-4xl font-bold mb-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">// {title}</h2>
+                <h2 className="text-4xl font-bold mb-8 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{`// ${title}`}</h2>
                 {children}
             </motion.section>
         );
@@ -264,8 +266,8 @@ export default function Page() {
     }
   };
 
-  const WHATSAPP_NUMBER = '1234567890';
-  const EMAIL_ADDRESS = 'hello@teamcreators.com';
+  const WHATSAPP_NUMBER = '7521850380';
+  const EMAIL_ADDRESS = 'kkaustubh92@gmail.com';
   const whatsappMessage = encodeURIComponent('Hi! I have a project inquiry.');
 
   const techStacks = {
@@ -346,12 +348,12 @@ export default function Page() {
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                   className="w-full max-w-4xl bg-black/80 border border-slate-700 rounded-lg p-8 shadow-2xl shadow-white/5 relative"
-                  onClick={(e) => e.stopPropagation()} // Prevents click from closing modal
+                  onClick={(e) => e.stopPropagation()} /* Prevents click from closing modal */
                 >
                     <button onClick={handleCloseWork} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
                         <FaTimes size={24} />
                     </button>
-                  <h2 className="text-4xl font-bold mb-8 text-white">// Selected_Projects</h2>
+                  <h2 className="text-4xl font-bold mb-8 text-white">{`// Selected_Projects`}</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <ProjectCard title="Theyala Social Platform" description="Full social media app (chat, auth, content) for NovusTales LLC, built from the ground up." />
                     <ProjectCard title="Danfe Tea AI Salesbot" description="Custom AI-powered chatbot to boost sales and engagement for a US-based tea company." />
@@ -371,7 +373,7 @@ export default function Page() {
             </div>
           </Section>
           <Section ref={contactRef} id="contact" title="Contact" style={{ opacity: contactOpacity, y: contactY }}>
-            <p className="mb-8 max-w-xl text-lg text-slate-300">We partner with a select group of clients. If you have a serious project, we'd love to hear from you.</p>
+            <p className="mb-8 max-w-xl text-lg text-slate-300">We partner with a select group of clients. If you have a serious project, we would love to hear from you.</p>
             <div className="flex flex-col sm:flex-row gap-6">
               <motion.a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.05, textShadow: '0 0 8px #ffffff', boxShadow: '0 0 12px #ffffff' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-white/90 text-black font-bold rounded-md transition-all border border-white">
                 <FaWhatsapp size={24} /> Message on WhatsApp
