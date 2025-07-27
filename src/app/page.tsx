@@ -3,7 +3,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-// FIX 1: Removed unused 'MotionStyle' import
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import useSound from 'use-sound';
@@ -307,9 +306,7 @@ export default function Page() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // FIX 2: Muted exhaustive-deps warning for simplicity
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showWork]);
+  }, [showWork, handleCloseWork, handleShowWork]);
 
   const WHATSAPP_NUMBER = '7521850380';
   const EMAIL_ADDRESS = 'kkaustubh92@gmail.com';
@@ -402,7 +399,7 @@ export default function Page() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
                 onClick={handleCloseWork}
               >
                 <motion.div
@@ -410,20 +407,25 @@ export default function Page() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="w-full max-w-5xl bg-black/80 border border-slate-700 rounded-lg p-8 shadow-2xl shadow-red-500/10 relative"
+                  className="w-full max-w-5xl bg-black/80 border border-slate-700 shadow-2xl shadow-red-500/10 relative 
+                             md:rounded-lg h-full md:h-auto md:max-h-[90vh] flex flex-col"
                   onClick={(e) => e.stopPropagation()}
                 >
-                    <button onClick={handleCloseWork} onMouseEnter={() => playHover()} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-                        <FaTimes size={24} />
-                    </button>
-                  <h2 className="text-4xl font-bold mb-8 text-white">{`// _Case_Files`}</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <ProjectCard playHover={playHover} title="Theyala Social Platform" description="One-of-a-kind social media platform for NovusTales LLC. Built from the ground up, featuring full chat, auth, and content systems." />
-                    <ProjectCard playHover={playHover} title="Danfe Tea AI Salesbot" description="AI-powered sales agent for a US-based tea company. It handles customer queries and boosts engagement, effectively replacing a human salesperson." />
-                    {/* FIX 3: Replaced ' with ' */}
-                    <ProjectCard playHover={playHover} title="SRM Event Portal (Zoho Collab)" description="Internal platform to manage college events for SRM's CTech department, streamlining organization and participation." />
-                    <ProjectCard playHover={playHover} title="Gameflix" description="Instagram-like platform for games and interactive media. Features AI-powered visual creation tools and social engagement." isComingSoon={true} />
-                  </div>
+                    <div className="flex-shrink-0 p-4 md:p-8 border-b border-slate-700 flex justify-between items-center">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white">{`// _Case_Files`}</h2>
+                        <button onClick={handleCloseWork} onMouseEnter={() => playHover()} className="text-slate-400 hover:text-white transition-colors">
+                            <FaTimes size={24} />
+                        </button>
+                    </div>
+
+                    <div className="p-4 md:p-8 overflow-y-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <ProjectCard playHover={playHover} title="Theyala Social Platform" description="One-of-a-kind social media platform for NovusTales LLC. Built from the ground up, featuring full chat, auth, and content systems." />
+                        <ProjectCard playHover={playHover} title="Danfe Tea AI Salesbot" description="AI-powered sales agent for a US-based tea company. It handles customer queries and boosts engagement, effectively replacing a human salesperson." />
+                        <ProjectCard playHover={playHover} title="SRM Event Portal (Zoho Collab)" description="Internal platform to manage college events for SRM's CTech department, streamlining organization and participation." />
+                        <ProjectCard playHover={playHover} title="Gameflix" description="Instagram-like platform for games and interactive media. Features AI-powered visual creation tools and social engagement." isComingSoon={true} />
+                      </div>
+                    </div>
                 </motion.div>
               </motion.div>
             )}
@@ -439,7 +441,6 @@ export default function Page() {
           </Section>
           
           <Section ref={contactRef} id="contact" title="Contact">
-             {/* FIX 3: Replaced ' with ' */}
             <p className="mb-8 max-w-xl text-lg text-slate-300">We partner with a select group of clients with serious projects. If you&apos;re ready to build something impactful, we would love to hear from you.</p>
             <div className="flex flex-col sm:flex-row gap-6">
               <motion.a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`} target="_blank" rel="noopener noreferrer" onHoverStart={() => playHover()} onClick={() => playClick()} whileHover={{ scale: 1.05, textShadow: '0 0 8px #25D366', boxShadow: '0 0 12px #25D366' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-green-500/90 text-white font-bold rounded-md transition-all border border-green-500">
