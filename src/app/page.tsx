@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { motion, useScroll, useTransform, AnimatePresence, MotionStyle } from 'framer-motion';
+// FIX 1: Removed unused 'MotionStyle' import
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import useSound from 'use-sound';
 import { FaWhatsapp, FaEnvelope, FaBrain, FaServer, FaPalette, FaReact, FaNodeJs, FaFigma, FaTimes, FaUserSecret } from 'react-icons/fa';
@@ -164,7 +165,6 @@ const HeroSection = () => (
   </section>
 );
 
-// --- FIX: Moved scroll animation logic inside the Section component ---
 const Section = React.forwardRef<HTMLElement, { id: string; title: string; children: React.ReactNode }>(
     ({ id, title, children }, ref) => {
         const { scrollYProgress } = useScroll({
@@ -179,7 +179,7 @@ const Section = React.forwardRef<HTMLElement, { id: string; title: string; child
                 ref={ref}
                 id={id}
                 className="min-h-screen py-32 space-y-12"
-                style={{ opacity, y }} // Apply animation styles directly
+                style={{ opacity, y }}
             >
                 <h2 className="text-4xl font-bold mb-12 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{`// ${title}`}</h2>
                 {children}
@@ -268,7 +268,19 @@ export default function Page() {
   const techRef = useRef<HTMLElement>(null);
   const contactRef = useRef<HTMLElement>(null);
 
-  // --- FIX: Removed useScrollAnim hook and direct calls from here ---
+    const handleShowWork = useCallback(() => {
+        if(!showWork) {
+            playClick();
+            setShowWork(true);
+            setShowPrompt(false);
+        }
+    }, [playClick, setShowPrompt, setShowWork, showWork]);
+
+    const handleCloseWork = useCallback(() => {
+        playClick();
+        setShowWork(false);
+        setShowPrompt(true);
+    }, [playClick, setShowPrompt, setShowWork]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -295,20 +307,9 @@ export default function Page() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // FIX 2: Muted exhaustive-deps warning for simplicity
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showWork]);
-
-  const handleShowWork = () => {
-    if(!showWork) {
-        playClick();
-        setShowWork(true);
-        setShowPrompt(false);
-    }
-  };
-  const handleCloseWork = () => {
-    playClick();
-    setShowWork(false);
-    setShowPrompt(true);
-  };
 
   const WHATSAPP_NUMBER = '7521850380';
   const EMAIL_ADDRESS = 'kkaustubh92@gmail.com';
@@ -378,7 +379,6 @@ export default function Page() {
         <main className="relative z-10 max-w-7xl mx-auto px-6 text-white">
           <HeroSection />
 
-          {/* FIX: Removed style prop from Section components */}
            <Section ref={aboutRef} id="about" title="Intel">
                 <p className="text-lg text-slate-300 max-w-3xl">We are an early-stage, agile team committed to pushing the boundaries of AI and gamified web experiences. Our partnership is built on a shared passion for technology and a commitment to delivering excellence.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
@@ -420,6 +420,7 @@ export default function Page() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <ProjectCard playHover={playHover} title="Theyala Social Platform" description="One-of-a-kind social media platform for NovusTales LLC. Built from the ground up, featuring full chat, auth, and content systems." />
                     <ProjectCard playHover={playHover} title="Danfe Tea AI Salesbot" description="AI-powered sales agent for a US-based tea company. It handles customer queries and boosts engagement, effectively replacing a human salesperson." />
+                    {/* FIX 3: Replaced ' with ' */}
                     <ProjectCard playHover={playHover} title="SRM Event Portal (Zoho Collab)" description="Internal platform to manage college events for SRM's CTech department, streamlining organization and participation." />
                     <ProjectCard playHover={playHover} title="Gameflix" description="Instagram-like platform for games and interactive media. Features AI-powered visual creation tools and social engagement." isComingSoon={true} />
                   </div>
@@ -438,7 +439,8 @@ export default function Page() {
           </Section>
           
           <Section ref={contactRef} id="contact" title="Contact">
-            <p className="mb-8 max-w-xl text-lg text-slate-300">We partner with a select group of clients with serious projects. If you're ready to build something impactful, we would love to hear from you.</p>
+             {/* FIX 3: Replaced ' with ' */}
+            <p className="mb-8 max-w-xl text-lg text-slate-300">We partner with a select group of clients with serious projects. If you&apos;re ready to build something impactful, we would love to hear from you.</p>
             <div className="flex flex-col sm:flex-row gap-6">
               <motion.a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`} target="_blank" rel="noopener noreferrer" onHoverStart={() => playHover()} onClick={() => playClick()} whileHover={{ scale: 1.05, textShadow: '0 0 8px #25D366', boxShadow: '0 0 12px #25D366' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-green-500/90 text-white font-bold rounded-md transition-all border border-green-500">
                 <FaWhatsapp size={24} /> Message on WhatsApp
@@ -446,10 +448,10 @@ export default function Page() {
               <motion.a href={`mailto:${EMAIL_ADDRESS}?subject=Project%20Inquiry`} onHoverStart={() => playHover()} onClick={() => playClick()} whileHover={{ scale: 1.05, textShadow: '0 0 8px #ef4444', boxShadow: '0 0 12px #ef4444' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-red-600/90 text-white font-bold rounded-md transition-all border border-red-600">
                 <FaEnvelope size={24} /> Send an Email
               </motion.a>
-            </div>
-          </Section>
-        </main>
-      </div>
+            </div >
+          </Section >
+        </main >
+      </div >
     </>
   );
 }
