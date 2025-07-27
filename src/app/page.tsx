@@ -85,7 +85,7 @@ const Navbar = ({ onShowWork }: { onShowWork: () => void }) => {
         >
             <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
                 <div className="text-white font-bold text-2xl tracking-widest">
-                    <DecryptingText delay={1000} className="text-2xl font-bold tracking-widest">TEAM CREATORS</DecryptingText>
+                    <DecryptingText delay={1000} className="text-2xl font-bold tracking-widest">TEAM BYTE CREATORS</DecryptingText>
                 </div>
                 <motion.button
                     onClick={onShowWork}
@@ -107,10 +107,10 @@ const HeroSection = ({ longPressProps }: { longPressProps: { onPointerDown: () =
     </h1>
     <div className="relative">
       <h2 className="absolute top-0 left-0 w-full h-full text-slate-200 opacity-80 blur-lg animate-pulse">
-        <DecryptingText className="font-bold text-6xl md:text-8xl tracking-widest">TEAM CREATORS</DecryptingText>
+        <DecryptingText className="font-bold text-6xl md:text-8xl tracking-widest">TEAM BYTE CREATORS</DecryptingText>
       </h2>
       <h2 className="relative text-white">
-        <DecryptingText className="font-bold text-6xl md:text-8xl tracking-widest">TEAM CREATORS</DecryptingText>
+        <DecryptingText className="font-bold text-6xl md:text-8xl tracking-widest">TEAM BYTE CREATORS</DecryptingText>
       </h2>
     </div>
     <motion.p
