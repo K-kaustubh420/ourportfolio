@@ -6,7 +6,8 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import useSound from 'use-sound';
-import { FaWhatsapp, FaEnvelope, FaBrain, FaServer, FaPalette, FaReact, FaNodeJs, FaFigma, FaTimes, FaUserSecret, FaSyncAlt } from 'react-icons/fa';
+// FIX: FaTimes import removed as it's no longer used.
+import { FaWhatsapp, FaEnvelope, FaBrain, FaServer, FaPalette, FaReact, FaNodeJs, FaFigma, FaUserSecret, FaSyncAlt, FaMousePointer } from 'react-icons/fa';
 import { SiNextdotjs, SiTypescript, SiTailwindcss, SiFirebase, SiSupabase, SiMongodb, SiOpenai, SiLangchain, SiBlender, SiThreedotjs, SiExpress } from 'react-icons/si';
 import { Share_Tech_Mono } from 'next/font/google';
 
@@ -203,7 +204,7 @@ const ServiceCard = ({ icon, title, children, playHover }: { icon: React.ReactNo
   </motion.div>
 );
 
-// --- NEW: FlippingCard Component for Projects ---
+// --- FlippingCard Component for Projects ---
 const FlippingCard = ({ title, description, isComingSoon = false, playHover }: { title: string; description: string; isComingSoon?: boolean; playHover: () => void; }) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
@@ -242,15 +243,16 @@ const FlippingCard = ({ title, description, isComingSoon = false, playHover }: {
                 onHoverStart={handleHoverStart}
                 onHoverEnd={handleHoverEnd}
                 animate={{ rotateY: isFlipped ? 180 : 0 }}
-                transition={{ duration: 0.6 }}
+                // IMPROVEMENT: Smoother and slightly longer transition with easing.
+                transition={{ duration: 0.7, ease: "easeInOut" }}
             >
                 {/* --- Front of the Card --- */}
                 <div className="absolute w-full h-full backface-hidden bg-black/50 rounded-lg p-6 backdrop-blur-sm border border-slate-700 flex flex-col justify-center items-center text-center">
                     {isComingSoon && <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">IN DEVELOPMENT</div>}
                     <h3 className="text-2xl font-semibold text-white">{title}</h3>
-                    <div className="md:hidden mt-4 text-red-400 flex items-center gap-2">
-                        <FaSyncAlt />
-                        <span>Tap to flip</span>
+                    {/* IMPROVEMENT: Clearer prompts for both mobile and desktop users */}
+                    <div className="absolute bottom-4 text-red-400 flex items-center gap-2 text-sm">
+                        {isMobile ? <> <FaSyncAlt /> <span>Tap to flip</span> </> : <> <FaMousePointer /> <span>Hover to reveal</span> </>}
                     </div>
                 </div>
 
@@ -306,26 +308,27 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  const [playHover] = useSound('/hover.mp3', { volume: 0.1 });
+  // FIX: Unused useCallback import removed.
+  const [playHover] = useSound('/click2.mp3', { volume: 0.05 });
   const [playClick] = useSound('/click2.mp3', { volume: 0.5 });
 
-  const aboutRef = useRef<HTMLElement | null>(null);
-  const servicesRef = useRef<HTMLElement | null>(null);
-  const casesRef = useRef<HTMLElement | null>(null); // Ref for the new Case Files section
-  const techRef = useRef<HTMLElement | null>(null);
-  const contactRef = useRef<HTMLElement | null>(null);
-
-  const sectionRefs: { [key: string]: React.RefObject<HTMLElement | null> } = {
-    about: aboutRef,
-    services: servicesRef,
-    cases: casesRef,
-    tech: techRef,
-    contact: contactRef,
-  };
-
-  const handleNavigation = (id: string) => {
+  const aboutRef = useRef<HTMLElement>(null!) as React.RefObject<HTMLElement>;
+  const servicesRef = useRef<HTMLElement>(null!) as React.RefObject<HTMLElement>;
+  const casesRef = useRef<HTMLElement>(null!) as React.RefObject<HTMLElement>;
+  const techRef = useRef<HTMLElement>(null!) as React.RefObject<HTMLElement>;
+  const contactRef = useRef<HTMLElement>(null!) as React.RefObject<HTMLElement>;
+  
+  // FIX: handleNavigation is wrapped in useCallback to stabilize its reference.
+  const handleNavigation = useCallback((id: string) => {
+    const sectionRefs: { [key: string]: React.RefObject<HTMLElement> } = {
+        about: aboutRef,
+        services: servicesRef,
+        cases: casesRef,
+        tech: techRef,
+        contact: contactRef,
+    };
     sectionRefs[id]?.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []); // Empty dependency array because refs don't need to be listed.
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -339,9 +342,9 @@ export default function Page() {
       const actions: { [key: string]: () => void } = {
         'i': () => handleNavigation('about'),
         's': () => handleNavigation('services'),
-        'c': () => handleNavigation('cases'), // 'c' now for cases
+        'c': () => handleNavigation('cases'),
         't': () => handleNavigation('tech'),
-        'o': () => handleNavigation('contact'), // 'o' for contact
+        'o': () => handleNavigation('contact'),
       };
       actions[key]?.();
     };
@@ -351,7 +354,8 @@ export default function Page() {
         window.removeEventListener('resize', checkMobile);
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  // FIX: handleNavigation is now correctly included in the dependency array.
+  }, [handleNavigation]);
 
   const WHATSAPP_NUMBER = '7521850380';
   const EMAIL_ADDRESS = 'kkaustubh92@gmail.com';
@@ -435,7 +439,6 @@ export default function Page() {
             </div>
           </Section>
           
-          {/* --- NEW: Case Files Section with Flipping Cards --- */}
           <Section ref={casesRef} id="cases" title="Case_Files">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FlippingCard playHover={playHover} title="Theyala Social Platform" description="One-of-a-kind social media platform for NovusTales LLC. Built from the ground up, featuring full chat, auth, and content systems." />
