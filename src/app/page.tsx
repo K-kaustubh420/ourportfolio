@@ -6,7 +6,7 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { TypeAnimation } from 'react-type-animation';
 import useSound from 'use-sound';
-import { FaWhatsapp, FaEnvelope, FaBrain, FaServer, FaPalette, FaReact, FaNodeJs, FaFigma, FaTimes, FaUserSecret } from 'react-icons/fa';
+import { FaWhatsapp, FaEnvelope, FaBrain, FaServer, FaPalette, FaReact, FaNodeJs, FaFigma, FaTimes, FaUserSecret, FaSyncAlt } from 'react-icons/fa';
 import { SiNextdotjs, SiTypescript, SiTailwindcss, SiFirebase, SiSupabase, SiMongodb, SiOpenai, SiLangchain, SiBlender, SiThreedotjs, SiExpress } from 'react-icons/si';
 import { Share_Tech_Mono } from 'next/font/google';
 
@@ -114,7 +114,7 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
 
 
 // --- UI Components ---
-const Navbar = ({ onShowWork, playHover, playClick }: { onShowWork: () => void; playHover: () => void; playClick: () => void; }) => {
+const Navbar = ({ onNavigate, playHover, playClick }: { onNavigate: (id: string) => void; playHover: () => void; playClick: () => void; }) => {
     return (
         <motion.header
             initial={{ y: -100 }}
@@ -127,7 +127,7 @@ const Navbar = ({ onShowWork, playHover, playClick }: { onShowWork: () => void; 
                     <DecryptingText delay={1000} className="text-2xl font-bold tracking-widest">TEAM BYTE CREATORS</DecryptingText>
                 </div>
                 <motion.button
-                    onClick={() => { playClick(); onShowWork(); }}
+                    onClick={() => { playClick(); onNavigate('cases'); }}
                     onHoverStart={() => playHover()}
                     whileHover={{ scale: 1.05, textShadow: '0 0 8px #ef4444', boxShadow: '0 0 12px #ef4444' }}
                     className="px-4 py-2 bg-red-600/90 text-white font-bold rounded-md text-sm border border-red-600 transition-all"
@@ -203,17 +203,66 @@ const ServiceCard = ({ icon, title, children, playHover }: { icon: React.ReactNo
   </motion.div>
 );
 
-const ProjectCard = ({ title, description, isComingSoon = false, playHover }: { title: string; description: string; isComingSoon?: boolean; playHover: () => void; }) => (
-  <motion.article
-    onHoverStart={() => playHover()}
-    whileHover={{ scale: 1.05, boxShadow: '0 0 25px rgba(255, 255, 255, 0.3)' }}
-    className="bg-black/50 rounded-lg p-6 backdrop-blur-sm border border-slate-700 transition-shadow duration-300 shadow-lg relative overflow-hidden h-full"
-  >
-    {isComingSoon && <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">IN DEVELOPMENT</div>}
-    <h3 className="text-2xl font-semibold mb-2 text-white">{title}</h3>
-    <p className="text-slate-400">{description}</p>
-  </motion.article>
-);
+// --- NEW: FlippingCard Component for Projects ---
+const FlippingCard = ({ title, description, isComingSoon = false, playHover }: { title: string; description: string; isComingSoon?: boolean; playHover: () => void; }) => {
+    const [isFlipped, setIsFlipped] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const handleFlip = () => {
+        if (isMobile) {
+            setIsFlipped(!isFlipped);
+        }
+    };
+
+    const handleHoverStart = () => {
+        if (!isMobile) {
+            setIsFlipped(true);
+            playHover();
+        }
+    };
+
+    const handleHoverEnd = () => {
+        if (!isMobile) {
+            setIsFlipped(false);
+        }
+    };
+
+    return (
+        <div className="perspective-1000 h-64" onClick={handleFlip}>
+            <motion.div
+                className="relative w-full h-full"
+                style={{ transformStyle: 'preserve-3d' }}
+                onHoverStart={handleHoverStart}
+                onHoverEnd={handleHoverEnd}
+                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                transition={{ duration: 0.6 }}
+            >
+                {/* --- Front of the Card --- */}
+                <div className="absolute w-full h-full backface-hidden bg-black/50 rounded-lg p-6 backdrop-blur-sm border border-slate-700 flex flex-col justify-center items-center text-center">
+                    {isComingSoon && <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded">IN DEVELOPMENT</div>}
+                    <h3 className="text-2xl font-semibold text-white">{title}</h3>
+                    <div className="md:hidden mt-4 text-red-400 flex items-center gap-2">
+                        <FaSyncAlt />
+                        <span>Tap to flip</span>
+                    </div>
+                </div>
+
+                {/* --- Back of the Card --- */}
+                <div className="absolute w-full h-full backface-hidden bg-slate-800/90 rounded-lg p-6 backdrop-blur-sm border border-red-500 flex flex-col justify-center" style={{ transform: 'rotateY(180deg)' }}>
+                    <p className="text-slate-300">{description}</p>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 
 const TechStackCard = ({ title, techs, playHover }: { title: string; techs: { icon: React.ReactNode | null; name: string }[], playHover: () => void }) => (
   <div className="bg-black/50 p-6 rounded-lg border border-slate-700">
@@ -255,31 +304,28 @@ const TeamMemberCard = ({ name, role, description, playHover }: { name: string; 
 // --- Main Page Component ---
 export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
-  const [showWork, setShowWork] = useState(false);
-  const [showPrompt, setShowPrompt] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  const [playHover] = useSound('/hover.mp3', { volume: 0.0 });
+  const [playHover] = useSound('/hover.mp3', { volume: 0.1 });
   const [playClick] = useSound('/click2.mp3', { volume: 0.5 });
 
-  const aboutRef = useRef<HTMLElement>(null);
-  const servicesRef = useRef<HTMLElement>(null);
-  const techRef = useRef<HTMLElement>(null);
-  const contactRef = useRef<HTMLElement>(null);
+  const aboutRef = useRef<HTMLElement | null>(null);
+  const servicesRef = useRef<HTMLElement | null>(null);
+  const casesRef = useRef<HTMLElement | null>(null); // Ref for the new Case Files section
+  const techRef = useRef<HTMLElement | null>(null);
+  const contactRef = useRef<HTMLElement | null>(null);
 
-    const handleShowWork = useCallback(() => {
-        if(!showWork) {
-            playClick();
-            setShowWork(true);
-            setShowPrompt(false);
-        }
-    }, [playClick, setShowPrompt, setShowWork, showWork]);
+  const sectionRefs: { [key: string]: React.RefObject<HTMLElement | null> } = {
+    about: aboutRef,
+    services: servicesRef,
+    cases: casesRef,
+    tech: techRef,
+    contact: contactRef,
+  };
 
-    const handleCloseWork = useCallback(() => {
-        playClick();
-        setShowWork(false);
-        setShowPrompt(true);
-    }, [playClick, setShowPrompt, setShowWork]);
+  const handleNavigation = (id: string) => {
+    sectionRefs[id]?.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -287,26 +333,25 @@ export default function Page() {
     window.addEventListener('resize', checkMobile);
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      
       const key = e.key.toLowerCase();
-      if (key === 'escape' && showWork) {
-        handleCloseWork();
-        return;
-      }
       const actions: { [key: string]: () => void } = {
-        'h': handleShowWork,
-        'i': () => aboutRef.current?.scrollIntoView({ behavior: 'smooth' }),
-        's': () => servicesRef.current?.scrollIntoView({ behavior: 'smooth' }),
-        't': () => techRef.current?.scrollIntoView({ behavior: 'smooth' }),
-        'c': () => contactRef.current?.scrollIntoView({ behavior: 'smooth' }),
+        'i': () => handleNavigation('about'),
+        's': () => handleNavigation('services'),
+        'c': () => handleNavigation('cases'), // 'c' now for cases
+        't': () => handleNavigation('tech'),
+        'o': () => handleNavigation('contact'), // 'o' for contact
       };
-      if (document.activeElement?.tagName !== 'INPUT') {
-          actions[key]?.();
-      }
+      actions[key]?.();
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showWork, handleCloseWork, handleShowWork]);
+    return () => {
+        window.removeEventListener('resize', checkMobile);
+        window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const WHATSAPP_NUMBER = '7521850380';
   const EMAIL_ADDRESS = 'kkaustubh92@gmail.com';
@@ -327,19 +372,19 @@ export default function Page() {
     <>
       <div className={`${techMono.className} bg-black text-slate-200 select-none md:cursor-none`}>
         <CustomCursor />
-        <Navbar onShowWork={handleShowWork} playHover={playHover} playClick={playClick} />
+        <Navbar onNavigate={handleNavigation} playHover={playHover} playClick={playClick} />
         <video
           src="/video.mp4"
           autoPlay
           loop
           muted
           playsInline
-          className="fixed top-0 left-0 w-full h-full object-cover z-[2]"
+          className="fixed top-0 left-0 w-full h-full object-cover z-[1]"
           controls={false}
           disablePictureInPicture
         />
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 z-[-1]" />
-        <Canvas className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" camera={{ position: [0, 0, 5], fov: 75 }}>
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 z-[0]" />
+        <Canvas className="fixed top-0 left-0 w-full h-full pointer-events-none z-[1]" camera={{ position: [0, 0, 5], fov: 75 }}>
           <ambientLight intensity={0.5} />
           <pointLight position={[0, 3, 3]} intensity={4} color="#ffffff" />
           <EffectComposer>
@@ -348,21 +393,20 @@ export default function Page() {
         </Canvas>
         
         <AnimatePresence>
-          {showPrompt && !showWork && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 bg-black/50 border border-slate-700 text-slate-300 px-4 py-2 rounded-lg backdrop-blur-sm"
+              className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 bg-black/50 border border-slate-700 text-slate-300 px-4 py-2 rounded-lg backdrop-blur-sm text-center"
             >
-              {isMobile ? 'Tap screen to navigate' :
+              {isMobile ? 'Scroll to explore' :
                 <TypeAnimation
                   sequence={[
-                    'Hold [H] for Case Files', 2000,
-                    'Hold [I] for Intel', 2000,
-                    'Hold [S] for Capabilities', 2000,
-                    'Hold [T] for Tech Stack', 2000,
-                    'Hold [C] for Contact', 2000,
+                    'Press [I] for Intel', 2000,
+                    'Press [S] for Capabilities', 2000,
+                    'Press [C] for Case Files', 2000,
+                    'Press [T] for Tech Stack', 2000,
+                    'Press [O] for Contact', 2000,
                   ]}
                   wrapper="span"
                   speed={50}
@@ -370,7 +414,6 @@ export default function Page() {
                 />
               }
             </motion.div>
-          )}
         </AnimatePresence>
         
         <main className="relative z-10 max-w-7xl mx-auto px-6 text-white">
@@ -392,44 +435,15 @@ export default function Page() {
             </div>
           </Section>
           
-          <AnimatePresence>
-            {showWork && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
-                onClick={handleCloseWork}
-              >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="w-full max-w-5xl bg-black/80 border border-slate-700 shadow-2xl shadow-red-500/10 relative 
-                             md:rounded-lg h-full md:h-auto md:max-h-[90vh] flex flex-col"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                    <div className="flex-shrink-0 p-4 md:p-8 border-b border-slate-700 flex justify-between items-center">
-                        <h2 className="text-3xl md:text-4xl font-bold text-white">{`// _Case_Files`}</h2>
-                        <button onClick={handleCloseWork} onMouseEnter={() => playHover()} className="text-slate-400 hover:text-white transition-colors">
-                            <FaTimes size={24} />
-                        </button>
-                    </div>
-
-                    <div className="p-4 md:p-8 overflow-y-auto">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <ProjectCard playHover={playHover} title="Theyala Social Platform" description="One-of-a-kind social media platform for NovusTales LLC. Built from the ground up, featuring full chat, auth, and content systems." />
-                        <ProjectCard playHover={playHover} title="Danfe Tea AI Salesbot" description="AI-powered sales agent for a US-based tea company. It handles customer queries and boosts engagement, effectively replacing a human salesperson." />
-                        <ProjectCard playHover={playHover} title="SRM Event Portal (Zoho Collab)" description="Internal platform to manage college events for SRM's CTech department, streamlining organization and participation." />
-                        <ProjectCard playHover={playHover} title="Gameflix" description="Instagram-like platform for games and interactive media. Features AI-powered visual creation tools and social engagement." isComingSoon={true} />
-                      </div>
-                    </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* --- NEW: Case Files Section with Flipping Cards --- */}
+          <Section ref={casesRef} id="cases" title="Case_Files">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FlippingCard playHover={playHover} title="Theyala Social Platform" description="One-of-a-kind social media platform for NovusTales LLC. Built from the ground up, featuring full chat, auth, and content systems." />
+                <FlippingCard playHover={playHover} title="Danfe Tea AI Salesbot" description="AI-powered sales agent for a US-based tea company. It handles customer queries and boosts engagement, effectively replacing a human salesperson." />
+                <FlippingCard playHover={playHover} title="SRM Event Portal (Zoho Collab)" description="Internal platform to manage college events for SRM's CTech department, streamlining organization and participation." />
+                <FlippingCard playHover={playHover} title="Gameflix" description="Instagram-like platform for games and interactive media. Features AI-powered visual creation tools and social engagement." isComingSoon={true} />
+            </div>
+          </Section>
 
           <Section ref={techRef} id="tech" title="Technology_Stack">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -446,7 +460,7 @@ export default function Page() {
               <motion.a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMessage}`} target="_blank" rel="noopener noreferrer" onHoverStart={() => playHover()} onClick={() => playClick()} whileHover={{ scale: 1.05, textShadow: '0 0 8px #25D366', boxShadow: '0 0 12px #25D366' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-green-500/90 text-white font-bold rounded-md transition-all border border-green-500">
                 <FaWhatsapp size={24} /> Message on WhatsApp
               </motion.a>
-              <motion.a href={`mailto:${EMAIL_ADDRESS}?subject=Project%20Inquiry`} onHoverStart={() => playHover()} onClick={() => playClick()} whileHover={{ scale: 1.05, textShadow: '0 0 8px #ef4444', boxShadow: '0 0 12px #ef4444' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-red-600/90 text-white font-bold rounded-md transition-all border border-red-600">
+              <motion.a href={`mailto:${EMAIL_ADDRESS}?subject=Project%20Inquiry`} rel="noopener noreferrer" onHoverStart={() => playHover()} onClick={() => playClick()} whileHover={{ scale: 1.05, textShadow: '0 0 8px #ef4444', boxShadow: '0 0 12px #ef4444' }} className="flex items-center justify-center gap-3 px-8 py-4 bg-red-600/90 text-white font-bold rounded-md transition-all border border-red-600">
                 <FaEnvelope size={24} /> Send an Email
               </motion.a>
             </div >
